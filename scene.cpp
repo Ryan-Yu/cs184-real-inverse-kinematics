@@ -55,6 +55,7 @@ Viewport	viewport;
 bool debug;
 int displayMode;
 JointSystem jointSystem;
+vector<Eigen::Vector3f> goals;
 
 
 
@@ -72,11 +73,22 @@ void initializeJoints() {
 	jointSystem.addJoint(joint4);
 }
 
+
+//****************************************************
+// Initialize list of goals (just a list of points)
+//***************************************************
+void initializeGoals() {
+	Eigen::Vector3f goal1 = Eigen::Vector3f(1.0, 0.0, 0.0);
+	goals.push_back(goal1);
+}
+
+
 //****************************************************
 // Simple init function
 //****************************************************
 void initScene(){
 	initializeJoints();
+	initializeGoals();
 }
 
 
@@ -104,7 +116,6 @@ void myDisplay() {
 
 	glMatrixMode(GL_MODELVIEW);
 	//glLoadIdentity();
-	glRotated(.4, 0, 1, 0);
 
 	glShadeModel(GL_FLAT);
 
@@ -179,6 +190,25 @@ void parseCommandLineOptions(int argc, char *argv[])
 }
 
 //****************************************************
+// Modifies joints to raech one goal
+//***************************************************
+void reachGoal(Eigen::Vector3f goal) {
+	// Do steps 2-5
+}
+
+
+//****************************************************
+// Processes all goals and tries to reach each one
+//***************************************************
+void reachGoals() {
+	for (std::vector<Eigen::Vector3f>::size_type i = 0; i < goals.size(); i++) {
+		Eigen::Vector3f currentGoal = goals[i];
+		reachGoal(currentGoal);
+	}
+}
+
+
+//****************************************************
 // the usual stuff, nothing exciting here
 //****************************************************
 int main(int argc, char *argv[]) {
@@ -214,6 +244,8 @@ int main(int argc, char *argv[]) {
 
 	// Program exits if space bar is pressed
 	glutKeyboardFunc( exitOnSpaceBarPress );
+
+	reachGoals();
 
 	glutMainLoop();							// infinite loop that will keep drawing and resizing
 	// and whatever else
