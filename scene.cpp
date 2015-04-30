@@ -53,6 +53,7 @@ class Viewport {
 //****************************************************
 Viewport	viewport;
 bool debug;
+int displayMode;
 JointSystem jointSystem;
 
 
@@ -119,7 +120,7 @@ void myDisplay() {
   // Iterate through joints and render them
   for (std::vector<Joint>::size_type i = 0; i < jointSystem.joints.size(); i++) {
 	  glColor3d(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]);
-	  jointSystem.joints[i].renderJoint();
+	  jointSystem.joints[i].renderJoint(displayMode);
   }
 
   glFlush();
@@ -135,10 +136,16 @@ void exitOnSpaceBarPress( unsigned char key, int x, int y )
 {
     switch ( key ) 
     {
+    case 'd':
+    	displayMode += 1;
+    	break;
+
     // Space bar
     case ' ':
         exit(1);
     }
+
+    glutPostRedisplay();
 }
 
 
@@ -177,6 +184,8 @@ void parseCommandLineOptions(int argc, char *argv[])
 // the usual stuff, nothing exciting here
 //****************************************************
 int main(int argc, char *argv[]) {
+
+  displayMode = 0;
 
   // Turns debug mode ON or OFF
   debug = true;

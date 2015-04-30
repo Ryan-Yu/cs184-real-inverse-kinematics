@@ -25,66 +25,70 @@ class Joint {
 	}
 
 	// Renders this joint with OpenGL commands
-	void renderJoint() {
-//		glBegin(GL_LINES);
-//		glVertex3f(startingPosition.x(), startingPosition.y(), startingPosition.z());
-//		glVertex3f(endingPosition.x(), endingPosition.y(), endingPosition.z());
-//		glEnd();
+	void renderJoint(int displayMode) {
+		if (displayMode % 2 == 0) {
+			glBegin(GL_LINES);
+			glVertex3f(startingPosition.x(), startingPosition.y(), startingPosition.z());
+			glVertex3f(endingPosition.x(), endingPosition.y(), endingPosition.z());
+			glEnd();
+		} else if (displayMode % 2 == 1) {
+			float d = length / 3;
+			Eigen::Vector3f first = startingPosition + Eigen::Vector3f(-d, d, -d);
+			Eigen::Vector3f second = startingPosition + Eigen::Vector3f(d, d, -d);
+			Eigen::Vector3f third = startingPosition + Eigen::Vector3f(d, d, d);
+			Eigen::Vector3f fourth = startingPosition + Eigen::Vector3f(-d, d, d);
 
-		float d = length / 3;
-		Eigen::Vector3f first = startingPosition + Eigen::Vector3f(-d, d, -d);
-		Eigen::Vector3f second = startingPosition + Eigen::Vector3f(d, d, -d);
-		Eigen::Vector3f third = startingPosition + Eigen::Vector3f(d, d, d);
-		Eigen::Vector3f fourth = startingPosition + Eigen::Vector3f(-d, d, d);
+			glBegin(GL_POLYGON);
+			glVertex3f(startingPosition[0], startingPosition[1], startingPosition[2]);
+			glVertex3f(first[0], first[1], first[2]);
+			glVertex3f(second[0], second[1], second[2]);
+			glEnd();
 
-		glBegin(GL_POLYGON);
-		glVertex3f(startingPosition[0], startingPosition[1], startingPosition[2]);
-		glVertex3f(first[0], first[1], first[2]);
-		glVertex3f(second[0], second[1], second[2]);
-		glEnd();
+			glBegin(GL_POLYGON);
+			glVertex3f(startingPosition[0], startingPosition[1], startingPosition[2]);
+			glVertex3f(second[0], second[1], second[2]);
+			glVertex3f(third[0], third[1], third[2]);
+			glEnd();
 
-		glBegin(GL_POLYGON);
-		glVertex3f(startingPosition[0], startingPosition[1], startingPosition[2]);
-		glVertex3f(second[0], second[1], second[2]);
-		glVertex3f(third[0], third[1], third[2]);
-		glEnd();
+			glBegin(GL_POLYGON);
+			glVertex3f(startingPosition[0], startingPosition[1], startingPosition[2]);
+			glVertex3f(third[0], third[1], third[2]);
+			glVertex3f(fourth[0], fourth[1], fourth[2]);
+			glEnd();
 
-		glBegin(GL_POLYGON);
-		glVertex3f(startingPosition[0], startingPosition[1], startingPosition[2]);
-		glVertex3f(third[0], third[1], third[2]);
-		glVertex3f(fourth[0], fourth[1], fourth[2]);
-		glEnd();
+			glBegin(GL_POLYGON);
+			glVertex3f(startingPosition[0], startingPosition[1], startingPosition[2]);
+			glVertex3f(fourth[0], fourth[1], fourth[2]);
+			glVertex3f(first[0], first[1], first[2]);
+			glEnd();
 
-		glBegin(GL_POLYGON);
-		glVertex3f(startingPosition[0], startingPosition[1], startingPosition[2]);
-		glVertex3f(fourth[0], fourth[1], fourth[2]);
-		glVertex3f(first[0], first[1], first[2]);
-		glEnd();
+			//second
+			glBegin(GL_POLYGON);
+			glVertex3f(endingPosition[0], endingPosition[1], endingPosition[2]);
+			glVertex3f(first[0], first[1], first[2]);
+			glVertex3f(second[0], second[1], second[2]);
+			glEnd();
 
-		//second
-		glBegin(GL_POLYGON);
-		glVertex3f(endingPosition[0], endingPosition[1], endingPosition[2]);
-		glVertex3f(first[0], first[1], first[2]);
-		glVertex3f(second[0], second[1], second[2]);
-		glEnd();
+			glBegin(GL_POLYGON);
+			glVertex3f(endingPosition[0], endingPosition[1], endingPosition[2]);
+			glVertex3f(second[0], second[1], second[2]);
+			glVertex3f(third[0], third[1], third[2]);
+			glEnd();
 
-		glBegin(GL_POLYGON);
-		glVertex3f(endingPosition[0], endingPosition[1], endingPosition[2]);
-		glVertex3f(second[0], second[1], second[2]);
-		glVertex3f(third[0], third[1], third[2]);
-		glEnd();
+			glBegin(GL_POLYGON);
+			glVertex3f(endingPosition[0], endingPosition[1], endingPosition[2]);
+			glVertex3f(third[0], third[1], third[2]);
+			glVertex3f(fourth[0], fourth[1], fourth[2]);
+			glEnd();
 
-		glBegin(GL_POLYGON);
-		glVertex3f(endingPosition[0], endingPosition[1], endingPosition[2]);
-		glVertex3f(third[0], third[1], third[2]);
-		glVertex3f(fourth[0], fourth[1], fourth[2]);
-		glEnd();
+			glBegin(GL_POLYGON);
+			glVertex3f(endingPosition[0], endingPosition[1], endingPosition[2]);
+			glVertex3f(fourth[0], fourth[1], fourth[2]);
+			glVertex3f(first[0], first[1], first[2]);
+			glEnd();
+		}
 
-		glBegin(GL_POLYGON);
-		glVertex3f(endingPosition[0], endingPosition[1], endingPosition[2]);
-		glVertex3f(fourth[0], fourth[1], fourth[2]);
-		glVertex3f(first[0], first[1], first[2]);
-		glEnd();
+
 	}
 
 };
