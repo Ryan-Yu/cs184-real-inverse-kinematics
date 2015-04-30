@@ -42,8 +42,8 @@ using namespace std;
 class Viewport;
 
 class Viewport {
-  public:
-    int w, h; // width and height
+public:
+	int w, h; // width and height
 };
 
 
@@ -84,13 +84,13 @@ void initScene(){
 // reshape viewport if the window is resized
 //***************************************************
 void myReshape(int w, int h) {
-  viewport.w = w;
-  viewport.h = h;
+	viewport.w = w;
+	viewport.h = h;
 
-  glViewport (0,0,viewport.w,viewport.h);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(-w / 1000.0, w / 1000.0, -h / 1000.0, h / 1000.0, 5, -5);
+	glViewport (0,0,viewport.w,viewport.h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(-w / 1000.0, w / 1000.0, -h / 1000.0, h / 1000.0, 5, -5);
 
 }
 
@@ -111,18 +111,18 @@ void myDisplay() {
 	glLoadIdentity();				        // make sure transformation is "zero'd"
 
 	double colors[] = { 0.0, 0.0, 1.0,
-	0.0, 1.0, 0.0,
-	1.0, 0.0, 0.0,
-	1.0, 1.0, 0.0 };
+			0.0, 1.0, 0.0,
+			1.0, 0.0, 0.0,
+			1.0, 1.0, 0.0 };
 
-  // Iterate through joints and render them
-  for (std::vector<Joint>::size_type i = 0; i < jointSystem.joints.size(); i++) {
-	  glColor3d(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]);
-	  jointSystem.joints[i].renderJoint(displayMode);
-  }
+	// Iterate through joints and render them
+	for (std::vector<Joint>::size_type i = 0; i < jointSystem.joints.size(); i++) {
+		glColor3d(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]);
+		jointSystem.joints[i].renderJoint(displayMode);
+	}
 
-  glFlush();
-  glutSwapBuffers();					// swap buffers (we earlier set double buffer)
+	glFlush();
+	glutSwapBuffers();					// swap buffers (we earlier set double buffer)
 }
 
 
@@ -132,18 +132,18 @@ void myDisplay() {
 //***************************************************
 void exitOnSpaceBarPress( unsigned char key, int x, int y )
 {
-    switch ( key ) 
-    {
-    case 'd':
-    	displayMode += 1;
-    	break;
+	switch ( key )
+	{
+	case 'd':
+		displayMode += 1;
+		break;
 
-    // Space bar
-    case ' ':
-        exit(1);
-    }
+		// Space bar
+	case ' ':
+		exit(1);
+	}
 
-    glutPostRedisplay();
+	glutPostRedisplay();
 }
 
 
@@ -152,10 +152,10 @@ void exitOnSpaceBarPress( unsigned char key, int x, int y )
 //***************************************************
 void printCommandLineOptionVariables( )
 {
-  if (debug)
-  {
-    
-  }
+	if (debug)
+	{
+
+	}
 }
 
 
@@ -166,16 +166,16 @@ void printCommandLineOptionVariables( )
 //***************************************************
 void parseCommandLineOptions(int argc, char *argv[])
 {
-  string flag;
+	string flag;
 
-  int i = 1;
-  while (i <= argc - 1) {
+	int i = 1;
+	while (i <= argc - 1) {
 
-    flag = argv[i];
+		flag = argv[i];
 
-    // Advance to next flag, if one exists
-    i++;
-  }
+		// Advance to next flag, if one exists
+		i++;
+	}
 }
 
 //****************************************************
@@ -183,42 +183,42 @@ void parseCommandLineOptions(int argc, char *argv[])
 //****************************************************
 int main(int argc, char *argv[]) {
 
-  displayMode = 1;
+	displayMode = 1;
 
-  // Turns debug mode ON or OFF
-  debug = true;
+	// Turns debug mode ON or OFF
+	debug = true;
 
-  // This initializes glut
-  glutInit(&argc, argv);
+	// This initializes glut
+	glutInit(&argc, argv);
 
-  // Parse command line options
-  parseCommandLineOptions(argc, argv);
-  printCommandLineOptionVariables();
+	// Parse command line options
+	parseCommandLineOptions(argc, argv);
+	printCommandLineOptionVariables();
 
-  //This tells glut to use a double-buffered window with red, green, and blue channels 
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+	//This tells glut to use a double-buffered window with red, green, and blue channels
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
-  // Initalize theviewport size
-  viewport.w = 1000;
-  viewport.h = 1000;
+	// Initalize theviewport size
+	viewport.w = 1000;
+	viewport.h = 1000;
 
-  //The size and position of the window
-  glutInitWindowSize(viewport.w, viewport.h);
-  glutInitWindowPosition(0,0);
-  glutCreateWindow(argv[0]);
+	//The size and position of the window
+	glutInitWindowSize(viewport.w, viewport.h);
+	glutInitWindowPosition(0,0);
+	glutCreateWindow(argv[0]);
 
-  initScene();							// quick function to set up scene
+	initScene();							// quick function to set up scene
 
-  glutDisplayFunc(myDisplay);				// function to run when its time to draw something
-  glutReshapeFunc(myReshape);				// function to run when the window gets resized
+	glutDisplayFunc(myDisplay);				// function to run when its time to draw something
+	glutReshapeFunc(myReshape);				// function to run when the window gets resized
 
-  // Program exits if space bar is pressed
-  glutKeyboardFunc( exitOnSpaceBarPress );
+	// Program exits if space bar is pressed
+	glutKeyboardFunc( exitOnSpaceBarPress );
 
-  glutMainLoop();							// infinite loop that will keep drawing and resizing
-  // and whatever else
+	glutMainLoop();							// infinite loop that will keep drawing and resizing
+	// and whatever else
 
-  return 0;
+	return 0;
 }
 
 
