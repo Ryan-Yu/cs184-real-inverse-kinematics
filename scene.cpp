@@ -24,8 +24,12 @@
 #include <stdio.h>
 #include <bitset>
 #include <algorithm>
+#include <stdlib.h>     //for using the function sleep
 
 #include "Eigen/Geometry"
+
+#include "Joint.h"
+#include "JointSystem.h"
 
 inline float sqr(float x) { return x*x; }
 
@@ -48,24 +52,36 @@ class Viewport {
 // Global Variables
 //****************************************************
 Viewport	viewport;
-
 bool debug;
+JointSystem jointSystem;
 
 
+
+//****************************************************
+// Initialize list of joints pointing in same direction (y-axis)
+//***************************************************
+void initializeJoints() {
+	Joint joint1 = Joint(Eigen::Vector3f(0.0, -0.5, 0.0), 0.2);
+	Joint joint2 = Joint(joint1.endingPosition, 0.4);
+	Joint joint3 = Joint(joint2.endingPosition, 0.3);
+	Joint joint4 = Joint(joint3.endingPosition, 0.1);
+	jointSystem.addJoint(joint1);
+	jointSystem.addJoint(joint2);
+	jointSystem.addJoint(joint3);
+	jointSystem.addJoint(joint4);
+}
 
 //****************************************************
 // Simple init function
 //****************************************************
 void initScene(){
-
-  // Nothing to do here for this simple example.
-
+	initializeJoints();
 }
 
 
 //****************************************************
 // reshape viewport if the window is resized
-//****************************************************
+//***************************************************
 void myReshape(int w, int h) {
   viewport.w = w;
   viewport.h = h;
@@ -73,69 +89,8 @@ void myReshape(int w, int h) {
   glViewport (0,0,viewport.w,viewport.h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluOrtho2D(0, viewport.w, 0, viewport.h);
+  glOrtho(-w / 1000.0, w / 1000.0, -h / 1000.0, h / 1000.0, 5, -5);
 
-}
-
-
-
-
-//****************************************************
-// A routine to set a pixel by drawing a GL point.  This is not a
-// general purpose routine as it assumes a lot of stuff specific to
-// this example.
-//****************************************************
-
-void setPixel(int x, int y, GLfloat r, GLfloat g, GLfloat b) {
-  glColor3f(r, g, b);
-  glVertex2f(x + 0.5, y + 0.5);   // The 0.5 is to target pixel
-  // centers 
-  // Note: Need to check for gap
-  // bug on inst machines.
-}
-
-
-
-//****************************************************
-// Draw a filled circle.  
-//****************************************************
-
-// For viewport of [400 x 400], center X = 200, center Y = 200
-void circle(float centerX, float centerY, float radius) {
-
-  // Draw inner circle
-  glBegin(GL_POINTS);
-
-  int i,j;  // Pixel indices
-
-  int minI = max(0,(int)floor(centerX-radius));
-  int maxI = min(viewport.w-1,(int)ceil(centerX+radius));
-
-  int minJ = max(0,(int)floor(centerY-radius));
-  int maxJ = min(viewport.h-1,(int)ceil(centerY+radius));
-
-  for (i=0;i<viewport.w;i++) {
-    for (j=0;j<viewport.h;j++) {
-
-      // Location of the center of pixel relative to center of sphere
-      float x = (i+0.5-centerX);
-      float y = (j+0.5-centerY);
-
-      float dist = sqrt(sqr(x) + sqr(y));
-
-      // if current pixel (i, j) is inside the bounds of the circle
-      if (dist<=radius) {
-
-        // This is the front-facing Z coordinate
-        float z = sqrt(radius*radius-dist*dist);
-
-        // setPixel(i,j, resultant_rgb_sum_of_pixel_r, resultant_rgb_sum_of_pixel_g, resultant_rgb_sum_of_pixel_b);
-      }
-
-    }
-  }
-
-  glEnd();
 }
 
 
@@ -144,16 +99,28 @@ void circle(float centerX, float centerY, float radius) {
 // function that does the actual drawing of stuff
 //***************************************************
 void myDisplay() {
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glClear(GL_COLOR_BUFFER_BIT);				// clear the color buffer
+	glMatrixMode(GL_MODELVIEW);
+	//glLoadIdentity();
+	glRotated(.4, 0, 1, 0);
 
-  glMatrixMode(GL_MODELVIEW);			        // indicate we are specifying camera transformations
-  glLoadIdentity();				        // make sure transformation is "zero'd"
+	glShadeModel(GL_FLAT);
 
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-  // Start drawing
-  // Ensure that the diameter of the circle is 90% of min(width, height)
-  circle(viewport.w / 2.0 , viewport.h / 2.0 , min(viewport.w, viewport.h) * 0.45);
+	glLoadIdentity();				        // make sure transformation is "zero'd"
+
+	double colors[] = { 0.0, 0.0, 1.0,
+	0.0, 1.0, 0.0,
+	1.0, 0.0, 0.0,
+	1.0, 1.0, 0.0 };
+
+  // Iterate through joints and render them
+  for (std::vector<Joint>::size_type i = 0; i < jointSystem.joints.size(); i++) {
+	  glColor3d(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]);
+	  jointSystem.joints[i].renderJoint();
+  }
 
   glFlush();
   glutSwapBuffers();					// swap buffers (we earlier set double buffer)
@@ -206,9 +173,6 @@ void parseCommandLineOptions(int argc, char *argv[])
   }
 }
 
-
-
-
 //****************************************************
 // the usual stuff, nothing exciting here
 //****************************************************
@@ -225,7 +189,7 @@ int main(int argc, char *argv[]) {
   printCommandLineOptionVariables();
 
   //This tells glut to use a double-buffered window with red, green, and blue channels 
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
   // Initalize theviewport size
   viewport.w = 1000;
