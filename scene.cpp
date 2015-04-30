@@ -108,8 +108,6 @@ void myDisplay() {
 
 	glShadeModel(GL_FLAT);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 	glLoadIdentity();				        // make sure transformation is "zero'd"
 
 	double colors[] = { 0.0, 0.0, 1.0,
@@ -185,7 +183,7 @@ void parseCommandLineOptions(int argc, char *argv[])
 //****************************************************
 int main(int argc, char *argv[]) {
 
-  displayMode = 0;
+  displayMode = 1;
 
   // Turns debug mode ON or OFF
   debug = true;
