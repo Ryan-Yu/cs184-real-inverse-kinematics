@@ -168,14 +168,23 @@ void updateRotations(Eigen::VectorXf changeInRotations) {
 	// changeInRotations is a vector of length m, where m = 3 * n (n = number of joints)
 	// Each joint has a 3-d vector that represents the rotation that needs to be applied to it
 
+	Eigen::Vector3f originalVector(0.0, 0.0, 0.0);
+
 	for (int i = 0; i < jointSystem.joints.size(); i++) {
+
+		originalVector = Eigen::Vector3f(jointSystem.joints[i].length, 0.0, 0.0);
+
 		// Perform all 3 rotations, per joint
-		jointSystem.joints[i].endingPosition = rotateX(jointSystem.joints[i].endingPosition, changeInRotations[3 * i]);
-		jointSystem.joints[i].endingPosition = rotateY(jointSystem.joints[i].endingPosition, changeInRotations[3 * i + 1]);
-		jointSystem.joints[i].endingPosition = rotateZ(jointSystem.joints[i].endingPosition, changeInRotations[3 * i + 2]);
+		jointSystem.joints[i].endingPosition = rotateX(originalVector, changeInRotations[3 * i] + jointSystem.joints[i].theta[0]);
+		jointSystem.joints[i].endingPosition = rotateY(jointSystem.joints[i].endingPosition, changeInRotations[3 * i + 1] + jointSystem.joints[i].theta[1]);
+		jointSystem.joints[i].endingPosition = rotateZ(jointSystem.joints[i].endingPosition, changeInRotations[3 * i + 2] + jointSystem.joints[i].theta[2]);
+
+		jointSystem.joints[i].theta += Eigen::Vector3f(changeInRotations[3 * i], changeInRotations[3 * i + 1], changeInRotations[3 * i + 2]);
 
 		if (i != 0) {
+			jointSystem.joints[i].endingPosition = translate(-jointSystem.joints[i - 1].endingPosition, jointSystem.joints[i].endingPosition);
 			jointSystem.joints[i].startingPosition = jointSystem.joints[i - 1].endingPosition;
+
 		}
 	}
 }
@@ -188,6 +197,7 @@ bool haveReachedGoal(Eigen::Vector3f goal) {
 	Eigen::Vector3f differenceVector = (jointSystem.joints[jointSystem.joints.size() - 1].endingPosition - goal);
 	float errorTerm = differenceVector.norm();
 	cout << errorTerm << "\n";
+	cout << "\n\nBitch:\n" << jointSystem.joints[jointSystem.joints.size() - 1].endingPosition << "\n\n";
 	if (errorTerm < EPSILON) {
 		// We are done!
 		return true;
@@ -214,6 +224,8 @@ void reachGoal(Eigen::Vector3f goal) {
 		// TODO: Update rotations and render system
 		updateRotations(changeInTheta);
 
+		glutPostRedisplay();
+
 		// TODO: How to stop this function if it is impossible to reach our goal?
 	}
 
@@ -237,9 +249,9 @@ void reachGoals() {
 //***************************************************
 void initializeJoints() {
 	Joint joint1 = Joint(Eigen::Vector3f(0.0, 0.0, 0.0), 1);
-	Joint joint2 = Joint(joint1.endingPosition, 2);
-	Joint joint3 = Joint(joint2.endingPosition, 3);
-	Joint joint4 = Joint(joint3.endingPosition, 4);
+	Joint joint2 = Joint(joint1.endingPosition, 1);
+	Joint joint3 = Joint(joint2.endingPosition, 1.5);
+	Joint joint4 = Joint(joint3.endingPosition, 1.5);
 	jointSystem.addJoint(joint1);
 	jointSystem.addJoint(joint2);
 	jointSystem.addJoint(joint3);
@@ -251,7 +263,7 @@ void initializeJoints() {
 // Initialize list of goals (just a list of points)
 //***************************************************
 void initializeGoals() {
-	Eigen::Vector3f goal1 = Eigen::Vector3f(10.0, 1.0, 0.0);
+	Eigen::Vector3f goal1 = Eigen::Vector3f(3.0, 4.0, 0.0);
 	goals.push_back(goal1);
 }
 

@@ -40,6 +40,8 @@ class Joint {
 			Eigen::Vector3f third = startingPosition + Eigen::Vector3f(d, d, d);
 			Eigen::Vector3f fourth = startingPosition + Eigen::Vector3f(-d, d, d);
 
+
+
 			glBegin(GL_POLYGON);
 			glVertex3f(startingPosition[0], startingPosition[1], startingPosition[2]);
 			glVertex3f(first[0], first[1], first[2]);
