@@ -35,6 +35,8 @@ inline float sqr(float x) { return x*x; }
 
 using namespace std;
 
+const float EPSILON = 0.01;
+
 //****************************************************
 // Some Classes
 //****************************************************
@@ -57,6 +59,42 @@ int displayMode;
 JointSystem jointSystem;
 vector<Eigen::Vector3f> goals;
 
+
+
+//****************************************************
+// Transformation functions
+//****************************************************
+static Eigen::Vector3f rotateX(Eigen::Vector3f point, float theta) {
+	Eigen::Matrix3f rotateX;
+	rotateX <<
+			1, 0, 0,
+			0, cos(theta), -sin(theta),
+			0, sin(theta), cos(theta);
+	return rotateX * point;
+}
+
+static Eigen::Vector3f rotateY(Eigen::Vector3f point, float theta) {
+	Eigen::Matrix3f rotateY;
+	rotateY <<
+			cos(theta), 0, sin(theta),
+			0, 1, 0,
+			-sin(theta), 0, cos(theta);
+
+	return rotateY * point;
+}
+
+static Eigen::Vector3f rotateZ(Eigen::Vector3f point, float theta) {
+	Eigen::Matrix3f rotateZ;
+	rotateZ <<
+		cos(theta), -sin(theta), 0,
+		sin(theta), cos(theta), 0,
+		0, 0, 1;
+	return rotateZ * point;
+}
+
+static Eigen::Vector3f translate(Eigen::Vector3f source, Eigen::Vector3f goal) {
+	return goal - source;
+}
 
 
 //****************************************************
@@ -103,7 +141,6 @@ void myReshape(int w, int h) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glOrtho(-w / 1000.0, w / 1000.0, -h / 1000.0, h / 1000.0, 5, -5);
-
 }
 
 
@@ -189,11 +226,31 @@ void parseCommandLineOptions(int argc, char *argv[])
 	}
 }
 
+
+//****************************************************
+// Determine (based on error term) whether we've reached the given goal
+//***************************************************
+bool haveReachedGoal(Eigen::Vector3f goal) {
+	Eigen::Vector3f differenceVector = (jointSystem.joints[jointSystem.joints.size() - 1].endingPosition - goal);
+	float errorTerm = differenceVector.norm();
+	if (errorTerm < EPSILON) {
+		// We are done!
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
 //****************************************************
 // Modifies joints to raech one goal
 //***************************************************
 void reachGoal(Eigen::Vector3f goal) {
-	// Do steps 2-5
+	// Do steps 3-5 if we haven't reached our goal
+	if (!haveReachedGoal(goal)) {
+		// Do some stuff
+	}
+
 }
 
 

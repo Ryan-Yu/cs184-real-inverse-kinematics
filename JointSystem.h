@@ -12,6 +12,7 @@ class JointSystem {
 	public:
 		std::vector<Joint> joints;
 
+
 	JointSystem() {
 
 	}
