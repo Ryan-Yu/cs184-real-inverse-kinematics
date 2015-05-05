@@ -35,7 +35,7 @@ inline float sqr(float x) { return x*x; }
 
 using namespace std;
 
-const float EPSILON = 0.01;
+const float EPSILON = 0.0001;
 
 //****************************************************
 // Some Classes
@@ -97,14 +97,149 @@ static Eigen::Vector3f translate(Eigen::Vector3f source, Eigen::Vector3f goal) {
 }
 
 
+
+//****************************************************
+// Find system Jacobian
+//***************************************************
+Eigen::MatrixXf findSystemJacobian() {
+	Eigen::MatrixXf systemJacobian(3, 3 * jointSystem.joints.size());
+
+	Eigen::Vector3f goalPosition = jointSystem.joints[jointSystem.joints.size() - 1].endingPosition;
+
+	// Calculate a 3x3 Jacobian for each joint, starting from the LEFT side of our larger systemJacobian matrix
+	for (std::vector<Joint>::size_type i = 0; i < jointSystem.joints.size(); i++) {
+		Joint currentJoint = jointSystem.joints[i];
+
+		Eigen::Vector3f originalVector = translate(currentJoint.startingPosition, goalPosition);
+
+		// First column (x-rotation)
+		Eigen::Vector3f rotatedXVector = rotateX(originalVector, EPSILON);
+		Eigen::Vector3f differenceXVector = (rotatedXVector - originalVector) / EPSILON;
+
+		// Second column (y-rotation)
+		Eigen::Vector3f rotatedYVector = rotateY(originalVector, EPSILON);
+		Eigen::Vector3f differenceYVector = (rotatedYVector - originalVector) / EPSILON;
+
+		// Third column (z-rotation)
+		Eigen::Vector3f rotatedZVector = rotateZ(originalVector, EPSILON);
+		Eigen::Vector3f differenceZVector = (rotatedZVector - originalVector) / EPSILON;
+
+		// Set appropriate columns in Jacobian matrix
+		// (First column)
+		systemJacobian(0, i * 3) = differenceXVector[0];
+		systemJacobian(1, i * 3) = differenceXVector[1];
+		systemJacobian(2, i * 3) = differenceXVector[2];
+		// (Second column)
+		systemJacobian(0, i * 3 + 1) = differenceYVector[0];
+		systemJacobian(1, i * 3 + 1) = differenceYVector[1];
+		systemJacobian(2, i * 3 + 1) = differenceYVector[2];
+		// (Third column)
+		systemJacobian(0, i * 3 + 2) = differenceZVector[0];
+		systemJacobian(1, i * 3 + 2) = differenceZVector[1];
+		systemJacobian(2, i * 3 + 2) = differenceZVector[2];
+	}
+	return systemJacobian;
+}
+
+//****************************************************
+// Find psuedo-inverse of system jacobian
+//***************************************************
+static Eigen::VectorXf findChangeInTheta(Eigen::MatrixXf systemJacobian, Eigen::Vector3f goal) {
+	double jointsLength = 0.0;
+
+	Eigen::Vector3f myGoal = goal;
+
+	for (int i = 0; i < jointSystem.joints.size(); i++) {
+		jointsLength += jointSystem.joints[i].length;
+	}
+
+	if (myGoal.norm() > jointsLength) {
+		myGoal = myGoal.normalized() * jointsLength;
+	}
+	Eigen::Vector3f goalVector = myGoal - jointSystem.joints[jointSystem.joints.size() - 1].endingPosition;
+	return systemJacobian.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(goalVector);
+}
+
+
+//****************************************************
+// Updates rotations of our vectors
+//***************************************************
+void updateRotations(Eigen::VectorXf changeInRotations) {
+	// changeInRotations is a vector of length m, where m = 3 * n (n = number of joints)
+	// Each joint has a 3-d vector that represents the rotation that needs to be applied to it
+
+	for (int i = 0; i < jointSystem.joints.size(); i++) {
+		// Perform all 3 rotations, per joint
+		jointSystem.joints[i].endingPosition = rotateX(jointSystem.joints[i].endingPosition, changeInRotations[3 * i]);
+		jointSystem.joints[i].endingPosition = rotateY(jointSystem.joints[i].endingPosition, changeInRotations[3 * i + 1]);
+		jointSystem.joints[i].endingPosition = rotateZ(jointSystem.joints[i].endingPosition, changeInRotations[3 * i + 2]);
+
+		if (i != 0) {
+			jointSystem.joints[i].startingPosition = jointSystem.joints[i - 1].endingPosition;
+		}
+	}
+}
+
+//****************************************************
+// Determine (based on error term) whether we've reached the given goal
+//***************************************************
+bool haveReachedGoal(Eigen::Vector3f goal) {
+
+	Eigen::Vector3f differenceVector = (jointSystem.joints[jointSystem.joints.size() - 1].endingPosition - goal);
+	float errorTerm = differenceVector.norm();
+	cout << errorTerm << "\n";
+	if (errorTerm < EPSILON) {
+		// We are done!
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
+//****************************************************
+// Modifies joints to reach one goal
+//***************************************************
+void reachGoal(Eigen::Vector3f goal) {
+
+	// Do steps 3-5 if we haven't reached our goal
+	if (!haveReachedGoal(goal)) {
+
+		// TODO: Find system jacobian
+		Eigen::MatrixXf systemJacobian = findSystemJacobian();
+
+		// TODO: Find Jacobian psuedo inverse
+		Eigen::VectorXf changeInTheta = findChangeInTheta(systemJacobian, goal);
+
+		// TODO: Update rotations and render system
+		updateRotations(changeInTheta);
+
+		// TODO: How to stop this function if it is impossible to reach our goal?
+	}
+
+}
+
+
+//****************************************************
+// Processes all goals and tries to reach each one
+//***************************************************
+void reachGoals() {
+	for (std::vector<Eigen::Vector3f>::size_type i = 0; i < goals.size(); i++) {
+		Eigen::Vector3f currentGoal = goals[i];
+		reachGoal(currentGoal);
+	}
+}
+
+
+
 //****************************************************
 // Initialize list of joints pointing in same direction (y-axis)
 //***************************************************
 void initializeJoints() {
-	Joint joint1 = Joint(Eigen::Vector3f(0.0, -0.5, 0.0), 0.2);
-	Joint joint2 = Joint(joint1.endingPosition, 0.4);
-	Joint joint3 = Joint(joint2.endingPosition, 0.3);
-	Joint joint4 = Joint(joint3.endingPosition, 0.1);
+	Joint joint1 = Joint(Eigen::Vector3f(0.0, 0.0, 0.0), 1);
+	Joint joint2 = Joint(joint1.endingPosition, 2);
+	Joint joint3 = Joint(joint2.endingPosition, 3);
+	Joint joint4 = Joint(joint3.endingPosition, 4);
 	jointSystem.addJoint(joint1);
 	jointSystem.addJoint(joint2);
 	jointSystem.addJoint(joint3);
@@ -116,7 +251,7 @@ void initializeJoints() {
 // Initialize list of goals (just a list of points)
 //***************************************************
 void initializeGoals() {
-	Eigen::Vector3f goal1 = Eigen::Vector3f(1.0, 0.0, 0.0);
+	Eigen::Vector3f goal1 = Eigen::Vector3f(10.0, 1.0, 0.0);
 	goals.push_back(goal1);
 }
 
@@ -140,7 +275,7 @@ void myReshape(int w, int h) {
 	glViewport (0,0,viewport.w,viewport.h);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(-w / 1000.0, w / 1000.0, -h / 1000.0, h / 1000.0, 5, -5);
+	glOrtho(-w / 100.0, w / 100.0, -h / 100.0, h / 100.0, 20, -20);
 }
 
 
@@ -162,6 +297,8 @@ void myDisplay() {
 			0.0, 1.0, 0.0,
 			1.0, 0.0, 0.0,
 			1.0, 1.0, 0.0 };
+
+	reachGoals();
 
 	// Iterate through joints and render them
 	for (std::vector<Joint>::size_type i = 0; i < jointSystem.joints.size(); i++) {
@@ -227,43 +364,6 @@ void parseCommandLineOptions(int argc, char *argv[])
 }
 
 
-//****************************************************
-// Determine (based on error term) whether we've reached the given goal
-//***************************************************
-bool haveReachedGoal(Eigen::Vector3f goal) {
-	Eigen::Vector3f differenceVector = (jointSystem.joints[jointSystem.joints.size() - 1].endingPosition - goal);
-	float errorTerm = differenceVector.norm();
-	if (errorTerm < EPSILON) {
-		// We are done!
-		return true;
-	} else {
-		return false;
-	}
-}
-
-
-//****************************************************
-// Modifies joints to raech one goal
-//***************************************************
-void reachGoal(Eigen::Vector3f goal) {
-	// Do steps 3-5 if we haven't reached our goal
-	if (!haveReachedGoal(goal)) {
-		// Do some stuff
-	}
-
-}
-
-
-//****************************************************
-// Processes all goals and tries to reach each one
-//***************************************************
-void reachGoals() {
-	for (std::vector<Eigen::Vector3f>::size_type i = 0; i < goals.size(); i++) {
-		Eigen::Vector3f currentGoal = goals[i];
-		reachGoal(currentGoal);
-	}
-}
-
 
 //****************************************************
 // the usual stuff, nothing exciting here
@@ -301,8 +401,6 @@ int main(int argc, char *argv[]) {
 
 	// Program exits if space bar is pressed
 	glutKeyboardFunc( exitOnSpaceBarPress );
-
-	reachGoals();
 
 	glutMainLoop();							// infinite loop that will keep drawing and resizing
 	// and whatever else

@@ -20,7 +20,7 @@ class Joint {
 	Joint(Eigen::Vector3f startingPosition, float length) {
 		this->length = length;
 		this->startingPosition = startingPosition;
-		endingPosition = startingPosition + Eigen::Vector3f(0.0, length, 0.0);
+		endingPosition = startingPosition + Eigen::Vector3f(length, 0.0, 0.0);
 		theta = Eigen::Vector3f(0.0, 0.0, 0.0);
 	}
 
