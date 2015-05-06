@@ -35,7 +35,7 @@ inline float sqr(float x) { return x*x; }
 
 using namespace std;
 
-const float EPSILON = 0.0001;
+const float EPSILON = 0.01;
 
 //****************************************************
 // Some Classes
@@ -196,8 +196,9 @@ bool haveReachedGoal(Eigen::Vector3f goal) {
 
 	Eigen::Vector3f differenceVector = (jointSystem.joints[jointSystem.joints.size() - 1].endingPosition - goal);
 	float errorTerm = differenceVector.norm();
-	cout << errorTerm << "\n";
-	cout << "\n\nBitch:\n" << jointSystem.joints[jointSystem.joints.size() - 1].endingPosition << "\n\n";
+	if (debug) {
+		cout << "Error term of \n" << jointSystem.joints[jointSystem.joints.size() - 1].endingPosition << "\nis " << errorTerm << "\n";
+	}
 	if (errorTerm < EPSILON) {
 		// We are done!
 		return true;
@@ -211,6 +212,9 @@ bool haveReachedGoal(Eigen::Vector3f goal) {
 // Modifies joints to reach one goal
 //***************************************************
 void reachGoal(Eigen::Vector3f goal) {
+	if (debug) {
+		cout << "\n\n\nTrying to reach goal:\n" << goal << "\n";
+	}
 
 	// Do steps 3-5 if we haven't reached our goal
 	if (!haveReachedGoal(goal)) {
@@ -263,8 +267,16 @@ void initializeJoints() {
 // Initialize list of goals (just a list of points)
 //***************************************************
 void initializeGoals() {
-	Eigen::Vector3f goal1 = Eigen::Vector3f(3.0, 4.0, 0.0);
+	Eigen::Vector3f goal1 = Eigen::Vector3f(-0.5, 2.5, 0.0);
+	Eigen::Vector3f goal2 = Eigen::Vector3f(3.0, 1.0, 0.0);
 	goals.push_back(goal1);
+	goals.push_back(goal2);
+}
+
+
+void resetAndAddGoal(Eigen::Vector3f goal) {
+	goals.clear();
+	goals.push_back(goal);
 }
 
 
